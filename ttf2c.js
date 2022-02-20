@@ -57,6 +57,8 @@ const printGlyphData = data => {
   })
 }
 
+const isAsciiCodePoint = c => c >= 32 && c <= 126
+
 const args = process.argv.slice(2);
 
 const filename = args[0];
@@ -64,7 +66,8 @@ const font = fontkit.openSync(filename);
 
 const scale = 16
 
-font.characterSet.map(extractGlyphData(font, scale)).forEach(data => {
-  if (data.codePoint > 127) return;
+font.characterSet.filter(isAsciiCodePoint).map(extractGlyphData(font, scale))
+
+font.characterSet.filter(isAsciiCodePoint).map(extractGlyphData(font, scale)).forEach(data => {
   printGlyphData(data);
 })
