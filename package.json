@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "dependencies": {
     "canvas": "^2.9.0",
     "fontkit": "^1.8.1"

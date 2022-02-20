@@ -1,5 +1,8 @@
-const fontkit = require('fontkit');
-const { createCanvas } = require('canvas');
+import fontkit from 'fontkit';
+import canvas from 'canvas';
+const { createCanvas } = canvas;
+
+import generate from './generate.js'
 
 const toByteString = byte => "0x" + byte.toString(16).padStart(2, "0")
 const toClearByteString = byte => byte > 0 ? byte.toString(16).padStart(2, "0") : "  "
@@ -66,8 +69,10 @@ const font = fontkit.openSync(filename);
 
 const scale = 16
 
-font.characterSet.filter(isAsciiCodePoint).map(extractGlyphData(font, scale))
+const glyphs = font.characterSet.filter(isAsciiCodePoint).map(extractGlyphData(font, scale))
 
-font.characterSet.filter(isAsciiCodePoint).map(extractGlyphData(font, scale)).forEach(data => {
-  printGlyphData(data);
-})
+console.log(generate(glyphs))
+
+// font.characterSet.filter(isAsciiCodePoint).map(extractGlyphData(font, scale)).forEach(data => {
+//   printGlyphData(data);
+// })
