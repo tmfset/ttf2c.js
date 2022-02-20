@@ -1,9 +1,12 @@
 
+const max = (a, b) => a > b ? a : b;
 const indent = by => level => line => "".padStart(by * level, " ") + line;
-const defaultIndent = indent(2)
+const singleIndent = indent(2)(1)
 
 const singleLineComment = line => "// " + line
 const multiLineComment = lines => ["/**", ...(lines.map(l => " * " + l)), " */"]
+
+const addCommas = lines => lines.join(",\n").split("\n");
 
 const toCodePointHex = c => "U+" + c.toString(16).padStart(4, "0");
 const toByteString = byte => "0x" + byte.toString(16).padStart(2, "0");
@@ -14,17 +17,13 @@ const toGlyphDeclarationName = glyph => `glyph_${glyph.codePoint}`;
 const toPixelDataRow = row => row.map(toByteString).join(", ");
 const toPixelDisplayRow = row => row.map(toByteDisplay).join("");
 
-const toPixelBlock = indentLevel => rows => {
-  const indent = defaultIndent(indentLevel);
-  const data = rows.map(toPixelDataRow).map(indent).join(",\n").split("\n");
+const toPixelBlock = rows => {
+  const data = addCommas(rows.map(toPixelDataRow));
   const comments = rows.map(toPixelDisplayRow).map(singleLineComment);
-  const lines = data.map((d, i) => d.padEnd(40, " ") + comments.slice(i, i + 1));
-  return lines;
+  return data.map((d, i) => d.padEnd(40, " ") + comments.slice(i, i + 1));
 }
 
 const box = minWidth => lines => {
-  const max = (a, b) => a > b ? a : b
-
   const width = lines.map(l => l.length + 3).reduce(max, minWidth);
 
   const end = "+".padEnd(width - 2, "-") + "+";
@@ -47,13 +46,42 @@ const toGlyphDeclaration = glyph => {
   return [
     ...toGlyphDeclarationComment(glyph),
     `static const uint8_t ${toGlyphDeclarationName(glyph)}[] = {`,
-    ...(toPixelBlock(1)(glyph.pixels)),
+    ...(toPixelBlock(glyph.pixels).map(singleIndent)),
     "};"
   ]
 }
 
+const toGlyphMetadata = glyph => {
+  const padNumber = n => n.toString().padStart(2, " ");
+  const data = addCommas([
+    `.width = ${padNumber(glyph.width)}`,
+    `.height = ${padNumber(glyph.height)}`,
+    `.xadvance = ${padNumber(glyph.width + 1)}`,
+    `.xOffset = ${padNumber(glyph.xOffset)}`,
+    `.yOffset = ${padNumber(glyph.yOffset)}`,
+    `.bitmap = ${toGlyphDeclarationName(glyph)}`
+  ]);
+  return ["{", ...data, "}"].join(" ");
+}
+
+const toGlyphSimpleDescription = glyph => `${toCodePointHex(glyph.codePoint)} "${glyph.name}"`;
+
+const toMetadataTable = glyphs => {
+  const data = addCommas(glyphs.map(toGlyphMetadata));
+  const length = data.map(l => l.length).reduce(max, 0);
+  const comments = glyphs.map(toGlyphSimpleDescription).map(singleLineComment);
+
+  const block = data.map((l, i) => l.padEnd(length, " ") + comments.slice(i, i + 1));
+  return [
+    `static const font_t metadata[${glyphs.length}] = {`,
+    ...(block.map(singleIndent)),
+    "};"
+  ];
+}
+
 export default function (glyphs) {
-  return glyphs.map(glyph => {
-    return toGlyphDeclaration(glyph).join("\n");
-  }).join("\n");
+  return toMetadataTable(glyphs).join("\n");
+//   return glyphs.map(glyph => {
+//     return toGlyphDeclaration(glyph).join("\n");
+//   }).join("\n");
 }
