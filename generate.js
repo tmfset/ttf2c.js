@@ -1,14 +1,24 @@
 
-const toCodePointHex = c => "U+" + c.toString(16).padStart(4, "0")
-const toByteString = byte => "0x" + byte.toString(16).padStart(2, "0")
-const toByteDisplay = byte => byte > 0 ? "█" : " "
+const indent = by => level => line => "".padStart(by * level, " ") + line;
+const indentDefault = indent(2)
 
-const glyphDeclName = glyph => `glyph_${glyph.codePoint}`
+const comment = line => "// " + line
 
-const toPixelRow = row => {
-  const bytes = (row.map(toByteString).join(", ") + ",").padEnd(40, " ")
-  const comment = "// " + row.map(toByteDisplay).join("")
-  return `  ${bytes}${comment}`;
+const toCodePointHex = c => "U+" + c.toString(16).padStart(4, "0");
+const toByteString = byte => "0x" + byte.toString(16).padStart(2, "0");
+const toByteDisplay = byte => byte > 0 ? "█" : " ";
+
+const glyphDeclName = glyph => `glyph_${glyph.codePoint}`;
+
+const toPixelDataRow = row => row.map(toByteString).join(", ");
+const toPixelDisplayRow = row => row.map(toByteDisplay).join("");
+
+const toPixelBlock = indentLevel => rows => {
+  const indent = indentDefault(indentLevel);
+  const data = rows.map(toPixelDataRow).map(indent).join(",\n").split("\n");
+  const comments = rows.map(toPixelDisplayRow).map(comment);
+  const lines = data.map((d, i) => d.padEnd(40, " ") + comments.slice(i, i + 1));
+  return lines.join("\n");
 }
 
 const box = minWidth => lines => {
@@ -28,16 +38,15 @@ const glyphDeclComment = glyph => {
   const offset = `(${glyph.xOffset}, ${glyph.yOffset})`
 
   const lines = [`${codePoint}${name}${size}${offset}`];
-  return box(40)(lines).map(l => "// " + l).join("\n");
+  return box(40)(lines).map(comment).join("\n");
 }
 
 const glyphDecl = glyph => {
   return `
 ${glyphDeclComment(glyph)}
 static const uint8_t ${glyphDeclName(glyph)}[] = {
-${glyph.pixels.map(toPixelRow).join("\n")}
-};
-  `;
+${toPixelBlock(1)(glyph.pixels)}
+};`;
 }
 
 export default function (glyphs) {
