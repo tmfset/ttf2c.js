@@ -79,9 +79,32 @@ const toMetadataTable = glyphs => {
   ];
 }
 
+const toLookupTable = glyphs => {
+  const switchBlock = glyphs.map((glyph, i) => {
+    return `case ${glyph.codePoint}: return &metadata[${i}];`
+  });
+
+  const switchStatement = [
+    "switch (id) {",
+    ...(switchBlock.map(singleIndent)),
+    "}"
+  ];
+  return [
+    `const font_t * lookup(int id) {`,
+    ...(switchStatement.map(singleIndent)),
+    "};"
+  ];
+}
+
 export default function (glyphs) {
-  return toMetadataTable(glyphs).join("\n");
-//   return glyphs.map(glyph => {
-//     return toGlyphDeclaration(glyph).join("\n");
-//   }).join("\n");
+  const declarations = glyphs.flatMap(g => [...toGlyphDeclaration(g), ""]);
+  const metadataTable = toMetadataTable(glyphs);
+  const lookupTable = toLookupTable(glyphs);
+
+  return [
+    ...declarations,
+    ...metadataTable,
+    "",
+    ...lookupTable,
+  ].join("\n");
 }
