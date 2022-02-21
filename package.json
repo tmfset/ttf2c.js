@@ -1,7 +1,19 @@
 {
-  "type": "module",
+  "version": "0.0.1",
+  "main": "dist/main.js",
+  "scripts": {
+    "generate": "tsc && node dist/main.js",
+    "lint": "eslint . --ext .ts"
+  },
   "dependencies": {
+    "@types/argparse": "^2.0.10",
+    "@types/fontkit": "^1.8.0",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
+    "argparse": "^2.0.1",
     "canvas": "^2.9.0",
-    "fontkit": "^1.8.1"
+    "eslint": "^8.3.0",
+    "fontkit": "^1.8.1",
+    "typescript": "^4.5.2"
   }
 }
