@@ -9,3 +9,15 @@ export interface GlyphRaster {
 
   pixels: Array<Array<number>>
 }
+
+export interface FontRaster {
+  outputName: string,
+  fontName: string,
+  lineHeight: number,
+  baseHeight: number,
+  totalFontGlyphs: number,
+  glyphs: Array<GlyphRaster>,
+  defaultIndex: number
+}
+
+export type Generator = (font: FontRaster) => string

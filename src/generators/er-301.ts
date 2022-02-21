@@ -1,8 +1,29 @@
-import { GlyphRaster } from "../models";
-import { indent, toBox, addCommas, glyphFormatter, Generator } from "./common";
-import { multiLineComment, singleLineComment, toPixelArray } from "./common-c";
+import { Generator, GlyphRaster, FontRaster } from "../models";
+import { indent, toBox, addCommas, glyphFormatter, fileDescriptor, toCodePointDescription } from "./common";
+import { multiLineComment, singleLineComment, toPixelArray, toLocalInclude } from "./common-c";
 
 const singleIndent = indent(2)(1)
+
+const fileComment = (font: FontRaster) =>
+  multiLineComment(fileDescriptor(font));
+
+const includes = [
+  "font.h"
+].map(toLocalInclude)
+
+const toFontDeclaration = (font: FontRaster) => [
+  `static const font_family_t info = {`,
+  ...([
+    `.line_height = ${font.lineHeight},`,
+    `.base        = ${font.baseHeight},`,
+    `.name        = "${font.outputName}"`
+  ].map(singleIndent)),
+  "}",
+  "",
+  `const font_family_t * ${font.outputName}_info(int id) {`,
+  singleIndent("return &info;"),
+  "}"
+];
 
 const toGlyphDeclarationName = (glyph: GlyphRaster) =>
   `glyph_${glyph.codePoint}`;
@@ -56,7 +77,7 @@ const toMetadataTable = (glyphs: Array<GlyphRaster>) => {
 
   const data = addCommas(glyphs.map(toGlyphMetadata));
   const length = data.map(l => l.length).reduce(max, 0);
-  const comments = glyphs.map(toDescription).map(singleLineComment);
+  const comments = glyphs.map(toDescription).map(singleLineComment).map(singleIndent);
 
   const block = data.map((l, i) => l.padEnd(length, " ") + comments.slice(i, i + 1));
   return [
@@ -66,33 +87,43 @@ const toMetadataTable = (glyphs: Array<GlyphRaster>) => {
   ];
 }
 
-const toLookupTable = (glyphs: Array<GlyphRaster>) => {
-  const switchBlock = glyphs.map((glyph, i) => {
-    return `case ${glyph.codePoint}: return &metadata[${i}];`
+const toLookupTable = (font: FontRaster) => {
+  const switchBlock = font.glyphs.map((glyph, i) => {
+    return `case ${glyph.codePoint}: return &metadata[${i}];  // ${toCodePointDescription(glyph.codePoint)}`
   });
 
   const switchStatement = [
     "switch (id) {",
     ...(switchBlock.map(singleIndent)),
-    "}"
+    "}",
+    "",
+    `return &metadata[${font.defaultIndex}];`
   ];
+
   return [
-    `const font_t * lookup(int id) {`,
+    `const font_t * ${font.outputName}_lookup(int id) {`,
     ...(switchStatement.map(singleIndent)),
     "};"
   ];
 }
 
-const generate: Generator = glyphs => {
-  const declarations = glyphs.flatMap(g => [...toGlyphDeclaration(g), ""]);
-  const metadataTable = toMetadataTable(glyphs);
-  const lookupTable = toLookupTable(glyphs);
+const generate: Generator = font => {
+  const declarations = font.glyphs.flatMap(g => [...toGlyphDeclaration(g), ""]);
+  const metadataTable = toMetadataTable(font.glyphs);
+  const lookupTable = toLookupTable(font);
 
   return [
+    ...(fileComment(font)),
+    "",
+    ...includes,
+    "",
+    ...(toFontDeclaration(font)),
+    "",
     ...declarations,
     ...metadataTable,
     "",
     ...lookupTable,
+    ""
   ].join("\n");
 }
 

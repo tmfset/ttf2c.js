@@ -1,5 +1,5 @@
-import { GlyphRaster } from "../models";
-import { toBox, glyphFormatter, Generator } from "./common";
+import { Generator, GlyphRaster } from "../models";
+import { toBox, glyphFormatter, fileDescriptor } from "./common";
 
 const toMetadata = (glyph: GlyphRaster) => {
   const format = glyphFormatter(glyph);
@@ -14,7 +14,11 @@ const toMetadata = (glyph: GlyphRaster) => {
   return [...metadata, ...(format.pixelDisplay().reverse())];
 }
 
-const generate: Generator = glyphs =>
-  glyphs.flatMap(g => [...toMetadata(g), ""]).join("\n");
+const generate: Generator = font => [
+  ...fileDescriptor(font),
+  "",
+  ...(font.glyphs.flatMap(g => [...toMetadata(g), ""]))
+].join("\n");
+  
 
 export default generate;

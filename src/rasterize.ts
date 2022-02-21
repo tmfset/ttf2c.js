@@ -1,6 +1,6 @@
 import fontkit, { Font } from 'fontkit';
 import { createCanvas } from 'canvas';
-import { GlyphRaster } from './models';
+import { GlyphRaster, FontRaster } from './models';
 
 const toMatrix = (stride: number) => {
   const inner = (array: Array<any>): Array<any> => {
@@ -11,20 +11,22 @@ const toMatrix = (stride: number) => {
   return inner;
 }
 
+const toPixels = (font: Font, scale: number) => (ems: number) => (ems / font.unitsPerEm) * scale;
+
 const clip = (x: number, y: number) => (m: Array<Array<any>>) =>
   m.slice(0, y).map(r => r.slice(0, x));
 
 const rasterize = (font: Font, scale: number) => (codePoint: number): GlyphRaster => {
   const glyph = font.glyphForCodePoint(codePoint);
 
-  const toPixels = (ems: number) => (ems / font.unitsPerEm) * scale;
+  const toP = toPixels(font, scale)
   const meta = {
     codePoint,
     name: String.fromCodePoint(codePoint),
-    width: toPixels(glyph.bbox.maxX - glyph.bbox.minX),
-    height: toPixels(glyph.bbox.maxY - glyph.bbox.minY),
-    xOffset: toPixels(glyph.bbox.minX),
-    yOffset: toPixels(glyph.bbox.minY)
+    width: toP(glyph.bbox.maxX - glyph.bbox.minX),
+    height: toP(glyph.bbox.maxY - glyph.bbox.minY),
+    xOffset: toP(glyph.bbox.minX),
+    yOffset: toP(glyph.bbox.minY)
   };
 
   const canvas = createCanvas(scale, scale);
@@ -41,19 +43,39 @@ const rasterize = (font: Font, scale: number) => (codePoint: number): GlyphRaste
   return { ...meta, pixels };
 }
 
-export default function (filename: string, size: number, ascii: boolean, chars: string) {
-  const font = fontkit.openSync(filename);
-
-  const charCodePoints = chars.split("").flatMap(s => {
-    const codePoint = s.codePointAt(0);
+const toCodePoints = (s: string) =>
+  s.split("").flatMap(c => {
+    const codePoint = c.codePointAt(0);
     return codePoint ? [codePoint] : [];
   });
 
+export default function (filename: string, size: number, ascii: boolean, chars: string): FontRaster {
+  const font = fontkit.openSync(filename);
+
   const fontCodePoints = font.characterSet;
-  const selectedCodePoints = charCodePoints.length > 0 ? charCodePoints : fontCodePoints;
+  const charCodePoints = toCodePoints(chars);
+
+  const useCharCodePoints = charCodePoints.length > 0;
+  const selectedCodePoints = useCharCodePoints ? charCodePoints : fontCodePoints;
 
   const isAsciiCodePoint = (c: number) => c >= 32 && c <= 126;
   const filteredCodePoints = ascii ? selectedCodePoints.filter(isAsciiCodePoint) : selectedCodePoints;
 
-  return filteredCodePoints.map(rasterize(font, size));
+  const toP = toPixels(font, size);
+
+  const defaultCodePoints = toCodePoints("? ");
+  const defaultIndices = defaultCodePoints.flatMap(c => {
+    const i = filteredCodePoints.findIndex(v => v === c);
+    return i >= 0 ? [i] : [];
+  });
+
+  return {
+    outputName: font.postscriptName,
+    fontName: font.fullName,
+    lineHeight: toP(font.bbox.maxY - font.bbox.minY),
+    baseHeight: toP(font.bbox.maxY),
+    totalFontGlyphs: fontCodePoints.length,
+    glyphs: filteredCodePoints.map(rasterize(font, size)),
+    defaultIndex: defaultIndices[0] || 0
+  };
 }

@@ -1,4 +1,4 @@
-import { Generator } from "./common";
+import { Generator } from "../models";
 
 import er301 from "./er-301";
 import debug from "./debug";

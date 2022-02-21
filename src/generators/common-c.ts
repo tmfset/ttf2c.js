@@ -11,3 +11,6 @@ export const toByteString = (byte: number) =>
 
 export const toPixelArray = (pixels: Array<Array<number>>) =>
   addCommas(pixels.map(row => row.map(toByteString).join(", ")));
+
+export const toInclude = (name: string) => `#include <${name}>`;
+export const toLocalInclude = (name: String) => `#include "${name}"`;
