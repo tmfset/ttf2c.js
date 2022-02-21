@@ -20,6 +20,17 @@ parser.add_argument('-s', '--size', {
   default: 16
 });
 
+parser.add_argument('-a', '--ascii', {
+  help: "Only generate ASCII codepoints.",
+  action: 'store_const',
+  const: true
+})
+
+parser.add_argument('-c', '--chars', {
+  help: "Only generate the given characters.",
+  default: ""
+})
+
 parser.add_argument('-f', '--format', {
   help: "The output format.",
   default: 'debug',
@@ -34,4 +45,4 @@ parser.add_argument('-v', '--version', {
 const args = parser.parse_args();
 
 const generator = generators(args.format);
-console.log(generator(rasterize(args.filename, args.size)));
+console.log(generator(rasterize(args.filename, args.size, args.ascii, args.chars)));

@@ -16,9 +16,9 @@ const toByteDisplay = (byte: number) =>
 
 export const toBox = (minWidth: number) => (lines: Array<string>) => {
   const max = (a: number, b: number) => Math.max(a, b)
-  const width = lines.map(l => l.length + 3).reduce(max, minWidth);
-  const end = "+".padEnd(width - 2, "-") + "+";
-  const middle = lines.map(l => "| " + l.padEnd(width - 4, " ") + "|");
+  const width = lines.map(l => l.length).reduce(max, minWidth);
+  const end = "+" + "".padEnd(width + 2, "-") + "+";
+  const middle = lines.map(l => "| " + l.padEnd(width, " ") + " |");
   return [end, ...middle, end];
 }
 

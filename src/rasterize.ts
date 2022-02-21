@@ -41,11 +41,19 @@ const rasterize = (font: Font, scale: number) => (codePoint: number): GlyphRaste
   return { ...meta, pixels };
 }
 
-export default function (filename: string, size: number) {
+export default function (filename: string, size: number, ascii: boolean, chars: string) {
   const font = fontkit.openSync(filename);
 
-  const isAsciiCodePoint = (c: number) => c >= 32 && c <= 126;
-  const codePoints = font.characterSet.filter(isAsciiCodePoint);
+  const charCodePoints = chars.split("").flatMap(s => {
+    const codePoint = s.codePointAt(0);
+    return codePoint ? [codePoint] : [];
+  });
 
-  return codePoints.map(rasterize(font, size));
+  const fontCodePoints = font.characterSet;
+  const selectedCodePoints = charCodePoints.length > 0 ? charCodePoints : fontCodePoints;
+
+  const isAsciiCodePoint = (c: number) => c >= 32 && c <= 126;
+  const filteredCodePoints = ascii ? selectedCodePoints.filter(isAsciiCodePoint) : selectedCodePoints;
+
+  return filteredCodePoints.map(rasterize(font, size));
 }
