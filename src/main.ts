@@ -45,4 +45,4 @@ parser.add_argument('-v', '--version', {
 const args = parser.parse_args();
 
 const generator = generators(args.format);
-console.log(generator(rasterize(args.filename, args.size, args.ascii, args.chars)));
+console.log(generator(rasterize(args.filename, parseInt(args.size), args.ascii, args.chars)));
