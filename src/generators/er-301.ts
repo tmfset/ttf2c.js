@@ -18,7 +18,7 @@ const toFontDeclaration = (font: FontRaster) => [
     `.base        = ${font.baseHeight},`,
     `.name        = "${font.outputName}"`
   ].map(singleIndent)),
-  "}",
+  "};",
   "",
   `const font_family_t * ${font.outputName}_info(int id) {`,
   singleIndent("return &info;"),
@@ -62,8 +62,8 @@ const toGlyphMetadata = (glyph: GlyphRaster) => {
     `.width = ${padNumber(glyph.width)}`,
     `.height = ${padNumber(glyph.height)}`,
     `.xadvance = ${padNumber(glyph.xAdvance)}`,
-    `.xOffset = ${padNumber(glyph.xOffset)}`,
-    `.yOffset = ${padNumber(glyph.yOffset)}`,
+    `.xoffset = ${padNumber(glyph.xOffset)}`,
+    `.yoffset = ${padNumber(glyph.yOffset)}`,
     `.bitmap = ${toGlyphDeclarationName(glyph)}`
   ]);
   return ["{", ...data, "}"].join(" ");
