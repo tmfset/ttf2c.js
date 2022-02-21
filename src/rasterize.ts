@@ -50,7 +50,7 @@ const toCodePoints = (s: string) =>
     return codePoint ? [codePoint] : [];
   });
 
-export default function (filename: string, size: number, ascii: boolean, chars: string): FontRaster {
+export default function (filename: string, size: number, ascii: boolean, chars: string, name?: string): FontRaster {
   const font = fontkit.openSync(filename);
 
   const fontCodePoints = font.characterSet;
@@ -71,7 +71,7 @@ export default function (filename: string, size: number, ascii: boolean, chars: 
   });
 
   return {
-    outputName: font.postscriptName,
+    outputName: name || font.postscriptName,
     fontName: font.fullName,
     lineHeight: toP(font.bbox.maxY - font.bbox.minY),
     baseHeight: toP(font.bbox.maxY),
