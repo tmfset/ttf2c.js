@@ -23,10 +23,11 @@ const rasterize = (font: Font, scale: number) => (codePoint: number): GlyphRaste
   const meta = {
     codePoint,
     name: String.fromCodePoint(codePoint),
-    width: toP(glyph.bbox.maxX - glyph.bbox.minX),
-    height: toP(glyph.bbox.maxY - glyph.bbox.minY),
-    xOffset: toP(glyph.bbox.minX),
-    yOffset: toP(glyph.bbox.minY)
+    width: Math.max(0, toP(glyph.bbox.maxX - glyph.bbox.minX)),
+    height: Math.max(0, toP(glyph.bbox.maxY - glyph.bbox.minY)),
+    xOffset: toP(glyph.cbox.minX),
+    yOffset: toP(glyph.cbox.minY),
+    xAdvance: toP(glyph.advanceWidth)
   };
 
   const canvas = createCanvas(scale, scale);

@@ -61,7 +61,7 @@ const toGlyphMetadata = (glyph: GlyphRaster) => {
   const data = addCommas([
     `.width = ${padNumber(glyph.width)}`,
     `.height = ${padNumber(glyph.height)}`,
-    `.xadvance = ${padNumber(glyph.width + 1)}`,
+    `.xadvance = ${padNumber(glyph.xAdvance)}`,
     `.xOffset = ${padNumber(glyph.xOffset)}`,
     `.yOffset = ${padNumber(glyph.yOffset)}`,
     `.bitmap = ${toGlyphDeclarationName(glyph)}`

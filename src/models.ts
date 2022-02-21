@@ -6,6 +6,7 @@ export interface GlyphRaster {
   height: number,
   xOffset: number,
   yOffset: number,
+  xAdvance: number,
 
   pixels: Array<Array<number>>
 }
