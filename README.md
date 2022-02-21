@@ -1,6 +1,8 @@
 # ttf2c.js
 A tool to rasterize TTF fonts and convert to C code.
 
+Works best with simple pixels fonts, particulary those made with [bitfontmaker2](https://www.pentacom.jp/pentacom/bitfontmaker2/).
+
 ## Installation
 ```
 npm install
